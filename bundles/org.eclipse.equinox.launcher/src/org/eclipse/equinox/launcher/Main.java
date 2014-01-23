@@ -172,6 +172,7 @@ public class Main {
 	private static final String PRODUCT_SITE_VERSION = "version"; //$NON-NLS-1$
 
 	// constants: System property keys and/or configuration file elements
+	private static final String PROP_USER_PROFILE = "USERPROFILE"; //$NON-NLS-1$
 	private static final String PROP_USER_HOME = "user.home"; //$NON-NLS-1$
 	private static final String PROP_USER_DIR = "user.dir"; //$NON-NLS-1$
 	private static final String PROP_INSTALL_AREA = "osgi.install.area"; //$NON-NLS-1$
@@ -216,6 +217,8 @@ public class Main {
 	private static final String NO_DEFAULT = "@noDefault"; //$NON-NLS-1$
 	private static final String USER_HOME = "@user.home"; //$NON-NLS-1$
 	private static final String USER_DIR = "@user.dir"; //$NON-NLS-1$
+	private static final String USER_PROFILE = "@user.profile"; //$NON-NLS-1$
+
 	// Placeholder for hashcode of installation directory
 	private static final String INSTALL_HASH_PLACEHOLDER = "@install.hash"; //$NON-NLS-1$
 
@@ -1251,6 +1254,10 @@ public class Main {
 				} else if (location.startsWith(USER_DIR)) {
 					String base = substituteVar(location, USER_DIR, PROP_USER_DIR);
 					location = new File(base, userDefaultAppendage).getAbsolutePath();
+				} else if (location.startsWith(USER_PROFILE)) {
+					//workaround to be able to use system properties as much as needed without the @
+					String base = substituteEnvVar(location, USER_PROFILE, PROP_USER_PROFILE);
+					location = new File(base, userDefaultAppendage).getAbsolutePath();
 				}
 				int idx = location.indexOf(INSTALL_HASH_PLACEHOLDER);
 				if (idx == 0) {
@@ -1265,6 +1272,11 @@ public class Main {
 				System.getProperties().put(property, result.toExternalForm());
 		}
 		return result;
+	}
+
+	private String substituteEnvVar(String source, String var, String prop) {
+		String value = System.getenv(prop) != null ? System.getenv(prop) : ""; //$NON-NLS-1$
+		return value + source.substring(var.length());
 	}
 
 	private String substituteVar(String source, String var, String prop) {
